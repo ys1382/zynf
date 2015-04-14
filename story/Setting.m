@@ -6,21 +6,37 @@
 
 @implementation Setting
 
-static NSMutableArray *allSettings;
+static NSMutableDictionary *allSettings;
 
 + (Setting *)settingWithValues:(NSArray *)values
 {
+    NSString *guid = [Setting guidFor:values];
+    Setting *already;
+    if ((already = [Setting existsFor:values])) {
+        return already;
+    }
+    
     Setting *setting = [Setting alloc];
     setting.values = [NSMutableArray arrayWithArray:values];
     setting.links = [NSMutableDictionary dictionary];
     setting.index    = [NSNumber numberWithInt:(int)[[Setting all] count]];
-    [[Setting all] addObject:setting];
+    [allSettings setObject:setting forKey:guid];
     return setting;
 }
 
-+ (NSArray*)generateSome:(int)howMany
-{
-    NSMutableArray *result = [NSMutableArray arrayWithCapacity:howMany];
++ (Setting*)existsFor:(NSArray *)values {
+    NSString *g = [Setting guidFor:values];
+    return [allSettings objectForKey:g];
+}
+
++ (void)printAll {
+    for (Setting *setting in [Setting all]) {
+        printf("%s\n", [[setting description] UTF8String]);
+    }
+}
+
++ (void)generateSome:(int)howMany {
+    NSMutableDictionary *result = [NSMutableDictionary dictionary];
     
     while (howMany--)
     {
@@ -34,11 +50,16 @@ static NSMutableArray *allSettings;
                 [itemStates addObject:[NSNumber numberWithUnsignedLong:r]];
             }
             Setting *setting = [Setting settingWithValues:itemStates];
-            [result addObject:setting];
+//            [result addObject:setting];
+            [result setObject:setting forKey:[Setting guidFor:setting.values]];
         }
     }
 
-    return result;
+    allSettings = result;
+}
+
++ (NSString *)guidFor:(NSArray *)values {
+    return [NSString stringWithFormat:@"values=[%@]", values];
 }
 
 - (Setting*) perform:(Action*)action
@@ -60,13 +81,13 @@ static NSMutableArray *allSettings;
     }
 }
 
-+ (NSMutableArray *)all
++ (NSArray *)all
 {
     if (allSettings == nil)
     {
-        allSettings = [NSMutableArray array];
+        allSettings = [NSMutableDictionary dictionary];
     }
-    return allSettings;
+    return [allSettings allValues];
 }
 
 - (NSString *)description {

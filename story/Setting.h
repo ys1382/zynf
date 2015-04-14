@@ -9,8 +9,8 @@
 @property (strong, nonatomic) NSNumber *index;
 
 + (Setting *)settingWithValues:(NSArray*)values;
-+ (NSArray*)generateSome:(int)howMany;
-+ (NSMutableArray*)all;
++ (void)generateSome:(int)howMany;
++ (NSArray*)all;
 + (void)linkThem;
 
 @end

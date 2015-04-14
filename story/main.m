@@ -10,12 +10,14 @@
 
 void test()
 {
-    [Item itemWithName:@"Alice" numStates:@[@2, @3]];
-    [Item itemWithName:@"Bob" numStates:@[@4, @5, @6]];
+    [Item itemWithName:@"The Prince" numStates:@[@2, @2]];
+    [Item itemWithName:@"The Princess" numStates:@[@2]];
+    [Item itemWithName:@"The Dragon" numStates:@[@2, @2]];
     [Verb verbWithName:@"married"];
     [Verb verbWithName:@"killed"];
 
     [Setting generateSome:3];
+
     [Action generateSome:2];
     [Setting linkThem];
     [Path generateAll];

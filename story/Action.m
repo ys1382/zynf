@@ -51,7 +51,9 @@ static NSMutableArray *allActions;
 }
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@ %@ %@", self.subject.name, self.verb.name, self.object.name];
+    
+    NSString *object = [self.object.name stringByReplacingOccurrencesOfString:@"The " withString:@"the "];
+    return [NSString stringWithFormat:@"%@ %@ %@", self.subject.name, self.verb.name, object];
 }
 
 

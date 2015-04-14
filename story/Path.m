@@ -67,13 +67,14 @@ static NSMutableArray *allPaths = nil;
 
     NSMutableArray *result = [NSMutableArray array];
     NSArray *linkKeys = [setting.links allKeys];
+    NSArray *settings = [Setting all];
 
     for (NSNumber *actionIndex in linkKeys) {
 
         NSNumber *destinationIndex = [setting.links objectForKey:actionIndex];
         if ([Path visit:destinationIndex]) {
 
-            Setting *consequence = [[Setting all] objectAtIndex:[destinationIndex integerValue]];
+            Setting *consequence = [settings objectAtIndex:[destinationIndex integerValue]];
             Action *action = [[Action all] objectAtIndex:[actionIndex integerValue]];
             Step *step = [Step stepFrom:setting to:consequence by:action];
             [result addObject:[NSMutableArray arrayWithObject:step]];
@@ -90,11 +91,22 @@ static NSMutableArray *allPaths = nil;
 
 + (NSString *)tell {
     
-    NSString *result = @"Once upon a time, there was ";
-    for (Item *item in [Item all]) {
-        result = [result stringByAppendingFormat:@"%@, ", item.name];
+    NSString *result = @"Once upon a time... there was ";
+
+    NSArray *items = [Item all];
+    for (int i=0; i<[items count]; i++) {
+
+        Item *item = items[i];
+        
+        NSString *name = [item.name stringByReplacingOccurrencesOfString:@"The" withString:@"a"];
+        if (i < [items count] - 1) {
+            name = [name stringByAppendingString:@", "];
+        } else {
+            name = [NSString stringWithFormat:@"and %@.\n", name];
+        }
+
+        result = [result stringByAppendingString:name];
     }
-    result = [result stringByAppendingString:@"\n"];
 
     NSArray *story = [Path best];
     for (Step *step in story) {
