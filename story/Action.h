@@ -1,0 +1,16 @@
+#import "Verb.h"
+#import "Item.h"
+
+
+@interface Action : NSObject
+
++ (NSArray*) generateSome:(NSUInteger)howMany;
+
+@property (strong, nonatomic) Verb *verb;
+@property (strong, nonatomic) Item *subject;
+@property (strong, nonatomic) Item *object;
+@property (strong, nonatomic) NSNumber *index;
+
++ (NSMutableArray*)all;
+
+@end
