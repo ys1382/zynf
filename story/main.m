@@ -10,11 +10,20 @@
 
 void test()
 {
+
+    NSString *(^marriage)(Setting *) = ^(Setting *setting) {
+        return @"z";
+    };
+    
+    NSString *(^murder)(Setting *) = ^(Setting *setting) {
+        return @"z";
+    };
+    
     [Item itemWithName:@"The Prince" numStates:@[@2, @2]];
     [Item itemWithName:@"The Princess" numStates:@[@2]];
     [Item itemWithName:@"The Dragon" numStates:@[@2, @2]];
-    [Verb verbWithName:@"married"];
-    [Verb verbWithName:@"killed"];
+    [Verb verbWithName:@"married" does:marriage];
+    [Verb verbWithName:@"killed" does:murder];
 
     [Setting generateSome:3];
 
