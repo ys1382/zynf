@@ -1,20 +1,13 @@
-#ifndef story_Setting_h
-#define story_Setting_h
-
-
 @interface Setting : NSObject
 
-@property NSMutableArray *values;
-@property NSMutableDictionary *links;
+@property NSMutableDictionary *values;  // { item.name : { state.name : state.value } }
+@property NSMutableDictionary *links;   // { action.index : setting.index }
 @property (strong, nonatomic) NSNumber *index;
 
-+ (Setting *)settingWithValues:(NSArray*)values;
++ (Setting *)settingWithValues:(NSDictionary *)values;
 + (void)generateSome:(int)howMany;
 + (NSArray*)all;
 + (void)linkThem;
+- (NSString *)guid;
 
 @end
-
-
-
-#endif

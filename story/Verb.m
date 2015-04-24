@@ -23,14 +23,16 @@ static NSMutableArray *allVerbs = nil;
 }
 
 - (NSMutableArray *)actIn:(Setting *)setting on:(Item *)item {
-    NSNumber *value = [[setting values] objectAtIndex:0];
-    value = @([value intValue] + 1);
-    [setting.values replaceObjectAtIndex:0 withObject:value];
-    return setting.values;
+//    NSNumber *value = [[setting values] objectAtIndex:0];
+//    value = @([value intValue] + 1);
+//    [setting.values replaceObjectAtIndex:0 withObject:value];
+//    return setting.values;
+    NSAssert(false, @"%@.actIn not implemented", self.name);
+    return nil;
 }
 
-- (NSString *)attemptIn:(Setting *)setting {
-    NSAssert(false, @"%@.attempt not implemented", self.name);
+- (NSString *)attempt:(Action *)action in:(Setting *)setting {
+    NSAssert(false, @"%@.attempt: in: not implemented", self.name);
     return nil;
 }
 

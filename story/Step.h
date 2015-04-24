@@ -11,4 +11,7 @@
 @property (strong, nonatomic) Setting *to;
 @property (strong, nonatomic) Action *by;
 
++ (Item*)StateWithName:(NSString*)name values:(NSArray*)values;
++ (NSMutableArray*)all;
+
 @end

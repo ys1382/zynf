@@ -2,13 +2,14 @@
 
 #import "Setting.h"
 #import "Action.h"
+#import "State.h"
 
 
 @implementation Setting
 
 static NSMutableDictionary *allSettings;
 
-+ (Setting *)settingWithValues:(NSArray *)values
++ (Setting *)settingWithValues:(NSDictionary *)values
 {
     NSString *guid = [Setting guidFor:values];
     Setting *already;
@@ -17,16 +18,20 @@ static NSMutableDictionary *allSettings;
     }
     
     Setting *setting = [Setting alloc];
-    setting.values = [NSMutableArray arrayWithArray:values];
+    setting.values = [NSMutableDictionary dictionaryWithDictionary:values];
     setting.links = [NSMutableDictionary dictionary];
     setting.index    = [NSNumber numberWithInt:(int)[[Setting all] count]];
     [allSettings setObject:setting forKey:guid];
     return setting;
 }
 
-+ (Setting*)existsFor:(NSArray *)values {
++ (Setting*)existsFor:(NSDictionary *)values {
     NSString *g = [Setting guidFor:values];
     return [allSettings objectForKey:g];
+}
+
+- (NSString *)guid {
+    return [Setting guidFor:self.values];
 }
 
 + (void)printAll {
@@ -35,22 +40,25 @@ static NSMutableDictionary *allSettings;
     }
 }
 
+// generate a few random settings
 + (void)generateSome:(int)howMany {
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
-    
+
     while (howMany--)
     {
-        for (Item *item in Item.all)
+        for (Item *item in Item.all) // for all items
         {
-            NSMutableArray *itemStates = [NSMutableArray arrayWithCapacity:item.numStates.count];
-            for (int i=0; i<item.numStates.count; i++)
-            {
-                u_int32_t bound = (u_int32_t)[item.numStates[i] unsignedIntegerValue];
+            NSMutableDictionary *itemStates = [NSMutableDictionary dictionary];
+
+            for (State *state in item.states) { // for all states
+
+                u_int32_t bound = (u_int32_t)[state.values count];
                 NSUInteger r = arc4random_uniform(bound);
-                [itemStates addObject:[NSNumber numberWithUnsignedLong:r]];
+                NSString *value = [state.values objectAtIndex:r];
+                [itemStates setObject:value forKey:state.name];
             }
+
             Setting *setting = [Setting settingWithValues:itemStates];
-//            [result addObject:setting];
             [result setObject:setting forKey:[Setting guidFor:setting.values]];
         }
     }
@@ -58,7 +66,7 @@ static NSMutableDictionary *allSettings;
     allSettings = result;
 }
 
-+ (NSString *)guidFor:(NSArray *)values {
++ (NSString *)guidFor:(NSDictionary *)values {
     return [NSString stringWithFormat:@"values=[%@]", values];
 }
 

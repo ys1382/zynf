@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		881A26B71AE70BB000A1EAB7 /* State.m in Sources */ = {isa = PBXBuildFile; fileRef = 881A26B61AE70BB000A1EAB7 /* State.m */; };
 		8824E2941AD9DE4700AD7423 /* Step.m in Sources */ = {isa = PBXBuildFile; fileRef = 8824E2931AD9DE4700AD7423 /* Step.m */; };
 		883D89471AB7A3CA008E9010 /* Action.m in Sources */ = {isa = PBXBuildFile; fileRef = 883D89431AB7A3CA008E9010 /* Action.m */; };
 		883D89481AB7A3CA008E9010 /* Item.m in Sources */ = {isa = PBXBuildFile; fileRef = 883D89441AB7A3CA008E9010 /* Item.m */; };
@@ -29,6 +30,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		881A26B51AE70BB000A1EAB7 /* State.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = State.h; sourceTree = "<group>"; };
+		881A26B61AE70BB000A1EAB7 /* State.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = State.m; sourceTree = "<group>"; };
 		8824E2921AD9DE4700AD7423 /* Step.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Step.h; sourceTree = "<group>"; };
 		8824E2931AD9DE4700AD7423 /* Step.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Step.m; sourceTree = "<group>"; };
 		883D89421AB7A37F008E9010 /* Item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Item.h; sourceTree = "<group>"; };
@@ -83,6 +86,8 @@
 				889D6EBF1ACCB49300DC6132 /* Path.m */,
 				883D894D1AB7A48D008E9010 /* Setting.h */,
 				883D89451AB7A3CA008E9010 /* Setting.m */,
+				881A26B51AE70BB000A1EAB7 /* State.h */,
+				881A26B61AE70BB000A1EAB7 /* State.m */,
 				8824E2921AD9DE4700AD7423 /* Step.h */,
 				8824E2931AD9DE4700AD7423 /* Step.m */,
 				883D894B1AB7A41F008E9010 /* Verb.h */,
@@ -151,6 +156,7 @@
 				883D894A1AB7A3CA008E9010 /* Verb.m in Sources */,
 				883D89481AB7A3CA008E9010 /* Item.m in Sources */,
 				888C5CD71AB21E9A001CE9F5 /* main.m in Sources */,
+				881A26B71AE70BB000A1EAB7 /* State.m in Sources */,
 				883D89491AB7A3CA008E9010 /* Setting.m in Sources */,
 				889D6EC01ACCB49300DC6132 /* Path.m in Sources */,
 				8824E2941AD9DE4700AD7423 /* Step.m in Sources */,

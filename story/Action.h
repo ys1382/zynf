@@ -2,6 +2,9 @@
 #import "Item.h"
 
 
+@class Verb;
+
+
 @interface Action : NSObject
 
 + (NSArray*) generateSome:(NSUInteger)howMany;

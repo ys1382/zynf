@@ -11,11 +11,28 @@
 void test()
 {
 
-    NSString *(^marriage)(Setting *) = ^(Setting *setting) {
-        return @"z";
+    NSString *(^marriage)(Setting*, Action*) = ^NSString *(Setting *setting, Action *action) {
+
+        // one cannot marry one's spouse
+        if ([action.subject.states objectForKey:@"spouse"] == action.object.name)
+            return nil;
+
+        // one cannot marry if either party is dead
+        if (([action.subject.states objectForKey:@"alive"] == nil) ||
+            ([action.object.states objectForKey:@"alive"] == nil))
+            return nil;
+        
+        setting = [setting copy];
+        
+        NSMutableDictionary *adam  = [setting.values objectForKey:action.subject.name];
+        NSMutableDictionary *steve = [setting.values objectForKey:action.object.name];
+        [adam setObject:action.object.name forKey:@"spouse"];
+        [steve setObject:action.subject.name forKey:@"spouse"];
+
+        return [setting guid];
     };
     
-    NSString *(^murder)(Setting *) = ^(Setting *setting) {
+    NSString *(^murder)(Setting*, Action*) = ^(Setting *setting, Action *action) {
         return @"z";
     };
     
