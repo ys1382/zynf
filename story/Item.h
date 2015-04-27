@@ -9,9 +9,10 @@
 
 @property (strong, nonatomic) NSString *name;
 //@property (strong, nonatomic) NSArray *numStates;
-@property (strong, nonatomic) NSDictionary *states;
+@property (strong, nonatomic) NSArray *states;
+@property (strong, nonatomic) NSMutableDictionary *values;
 
-+ (Item*)itemWithName:(NSString*)name numStates:(NSArray*)numStates;
++ (Item*)itemWithName:(NSString*)name states:(NSArray*)states;
 + (NSMutableArray*)all;
 
 

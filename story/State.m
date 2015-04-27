@@ -17,10 +17,10 @@ static NSMutableArray *allStates = nil;
 }
 
 
-+ (State*)StateWithName:(NSString*)name values:(NSArray*)values {
++ (State*)stateWithName:(NSString*)_name values:(NSArray*)_values {
     State *state = [State alloc];
-    state.name = name;
-    state.values = values;
+    state.name = _name;
+    state.values = _values;
 
     [[State all] addObject:state];
     return state;

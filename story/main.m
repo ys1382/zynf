@@ -5,6 +5,7 @@
 #import "Action.h"
 #import "Verb.h"
 #import "Path.h"
+#import "State.h"
 
 /////// test
 
@@ -14,12 +15,12 @@ void test()
     NSString *(^marriage)(Setting*, Action*) = ^NSString *(Setting *setting, Action *action) {
 
         // one cannot marry one's spouse
-        if ([action.subject.states objectForKey:@"spouse"] == action.object.name)
+        if ([action.subject.values objectForKey:@"spouse"] == action.object.name)
             return nil;
 
         // one cannot marry if either party is dead
-        if (([action.subject.states objectForKey:@"alive"] == nil) ||
-            ([action.object.states objectForKey:@"alive"] == nil))
+        if (([action.subject.values objectForKey:@"alive"] == nil) ||
+            ([action.object.values objectForKey:@"alive"] == nil))
             return nil;
         
         setting = [setting copy];
@@ -36,9 +37,12 @@ void test()
         return @"z";
     };
     
-    [Item itemWithName:@"The Prince" numStates:@[@2, @2]];
-    [Item itemWithName:@"The Princess" numStates:@[@2]];
-    [Item itemWithName:@"The Dragon" numStates:@[@2, @2]];
+    State *married = [State stateWithName:@"married" values:[NSArray arrayWithObjects:@"married",@"single",nil]];
+    State *alive   = [State stateWithName:@"alive" values:[NSArray arrayWithObjects:@"alive",@"dead",nil]];
+    
+    [Item itemWithName:@"The Prince" states:[NSArray arrayWithObjects:married,alive,nil]];
+    [Item itemWithName:@"The Princess" states:[NSArray arrayWithObjects:married,alive,nil]];
+    [Item itemWithName:@"The Dragon" states:[NSArray arrayWithObjects:married,alive,nil]];
     [Verb verbWithName:@"married" does:marriage];
     [Verb verbWithName:@"killed" does:murder];
 

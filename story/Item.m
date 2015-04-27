@@ -13,11 +13,12 @@ static NSMutableArray *allItems = nil;
     return allItems;
 }
 
-+ (Item*)itemWithName:(NSString*)_name numStates:(NSDictionary*)_states
++ (Item*)itemWithName:(NSString*)_name states:(NSArray*)_states;
 {
     Item *item = [Item alloc];
     item.name = _name;
     item.states = _states;
+    item.values = [NSMutableDictionary dictionary];
 
     [[Item all] addObject:item];
     return item;
