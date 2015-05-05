@@ -12,6 +12,7 @@ typedef NSString *(^Attempt)(Setting*, Action*);
 @interface Verb : NSObject
 
 @property (strong, nonatomic) NSString *name;
+@property (nonatomic, copy) NSString *(^doing)(Setting*, Action*);
 
 + (Verb *)verbWithName:(NSString *)name does:(Attempt)attempt;
 + (NSMutableArray *)all;

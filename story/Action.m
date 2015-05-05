@@ -56,5 +56,8 @@ static NSMutableArray *allActions;
     return [NSString stringWithFormat:@"%@ %@ %@", self.subject.name, self.verb.name, object];
 }
 
+- (NSString *)attemptIn:(Setting *)setting {
+    return [self.verb attempt:self in:setting];
+}
 
 @end

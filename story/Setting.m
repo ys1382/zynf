@@ -70,11 +70,11 @@ static NSMutableDictionary *allSettings;
     return [NSString stringWithFormat:@"values=[%@]", values];
 }
 
-- (Setting*) perform:(Action*)action
+- (NSString *)perform:(Action*)action
 {
-    unsigned int numSettings = (unsigned int)[[Setting all] count];
-    Setting *consequence = [[Setting all] objectAtIndex:arc4random_uniform(numSettings)];
-    return consequence;
+//    unsigned int numSettings = (unsigned int)[[Setting all] count];
+//    Setting *consequence = [[Setting all] objectAtIndex:arc4random_uniform(numSettings)];
+    return [action attemptIn:self];
 }
 
 + (void)linkThem
@@ -83,8 +83,10 @@ static NSMutableDictionary *allSettings;
     {
         for (Action *action in [Action all])
         {
-            Setting *consequence = [setting perform:action];
-            [setting.links setObject:[consequence index] forKey:[action index]];
+            NSString *consequence = [setting perform:action];
+            if (consequence != nil) {
+                [setting.links setObject:consequence forKey:[action index]];
+            }
         }
     }
 }
@@ -102,5 +104,13 @@ static NSMutableDictionary *allSettings;
     NSString *result = [NSString stringWithFormat:@"Setting: values:%@ links:%@", self.values, self.links];
     return result;
 }
+
+- (id)copyWithZone:(NSZone *)zone {
+    
+    Setting *copy = [Setting allocWithZone:zone];
+    copy.values = [self.values copy];
+    return copy;
+}
+
 
 @end

@@ -110,7 +110,7 @@ static NSMutableArray *allPaths = nil;
 
     NSArray *story = [Path best];
     for (Step *step in story) {
-        result = [result stringByAppendingFormat:@"%@\n", [step.by description]];
+        result = [result stringByAppendingFormat:@"%@.\n", [step.by description]];
     }
 
     result = [result stringByAppendingString:@"...and they lived happily ever after. The end.\n"];

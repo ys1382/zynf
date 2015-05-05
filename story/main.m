@@ -14,14 +14,21 @@ void test()
 
     NSString *(^marriage)(Setting*, Action*) = ^NSString *(Setting *setting, Action *action) {
 
+        // one cannot marry oneself
+        if ([action.subject.name isEqualToString:action.object.name]) {
+            return nil;
+        }
+        
         // one cannot marry one's spouse
-        if ([action.subject.values objectForKey:@"spouse"] == action.object.name)
+        if ([action.subject.values objectForKey:@"spouse"] == action.object.name) {
             return nil;
+        }
 
-        // one cannot marry if either party is dead
-        if (([action.subject.values objectForKey:@"alive"] == nil) ||
-            ([action.object.values objectForKey:@"alive"] == nil))
+        // one cannot marry if either party is dead - I feel like such a prude making these rules
+        if (([action.subject.values objectForKey:@"dead"] != nil) ||
+            ([action.object.values objectForKey:@"dead"] != nil)) {
             return nil;
+        }
         
         setting = [setting copy];
         
@@ -33,8 +40,20 @@ void test()
         return [setting guid];
     };
     
-    NSString *(^murder)(Setting*, Action*) = ^(Setting *setting, Action *action) {
-        return @"z";
+    NSString *(^murder)(Setting*, Action*) = ^NSString *(Setting *setting, Action *action) {
+
+        // one cannot kill if either party is dead
+        if (([action.subject.values objectForKey:@"dead"] != nil) ||
+            ([action.object.values objectForKey:@"dead"] != nil)) {
+            return nil;
+        }
+        
+        setting = [setting copy];
+
+        NSMutableDictionary *abel = [setting.values objectForKey:action.object.name];
+        [abel setObject:@"as a doorknob" forKey:@"dead"];
+
+        return [setting guid];
     };
     
     State *married = [State stateWithName:@"married" values:[NSArray arrayWithObjects:@"married",@"single",nil]];

@@ -15,5 +15,6 @@
 @property (strong, nonatomic) NSNumber *index;
 
 + (NSMutableArray*)all;
+- (NSString *)attemptIn:(Setting *)setting;
 
 @end

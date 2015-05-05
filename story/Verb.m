@@ -15,9 +15,10 @@ static NSMutableArray *allVerbs = nil;
     return allVerbs;
 }
 
-+ (Verb *)verbWithName:(NSString *)name does:(Attempt)attempt {
++ (Verb *)verbWithName:(NSString *)_name does:(Attempt)_doing {
     Verb *verb = [Verb alloc];
-    verb.name = name;
+    verb.name = _name;
+    verb.doing = _doing;
     [[Verb all] addObject:verb];
     return verb;
 }
@@ -32,8 +33,7 @@ static NSMutableArray *allVerbs = nil;
 }
 
 - (NSString *)attempt:(Action *)action in:(Setting *)setting {
-    NSAssert(false, @"%@.attempt: in: not implemented", self.name);
-    return nil;
+    return self.doing(setting, action);
 }
 
 
