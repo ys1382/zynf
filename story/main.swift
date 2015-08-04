@@ -1,16 +1,9 @@
 
 var prince, dragon: Actor;
 var princess, cave, castle: Item;
+var locations: [Item];
+var alive: Attribute;
 
-cave = Item(name: "Cave");
-castle = Item(name: "Castle");
-princess = Item(name: "princess");
-
-let alive = Attribute(name: "alive", possibleValues: [True, False]);
-let locations = [cave, castle];
-
-//typealias Possibles = (sitch: Sitch, verb:Verb, subject: Instance) -> [Action];
-//typealias DoIt = (sitch: Sitch, action: Action) -> (Sitch);
 
 // <subject goto <object1>
 let goPossibles: Possibles = {
@@ -39,6 +32,13 @@ let fightDoIt: DoIt = {
     action.object1!.set(alive, value: False);
 }
 
+cave = Item(name: "Cave");
+castle = Item(name: "Castle");
+princess = Item(name: "princess");
+
+alive = Attribute(name: "alive", possibleValues: [True, False]);
+locations = [cave, castle];
+
 let go    = Verb(name: "go",    possibles: goPossibles, doIt: goDoIt);
 let take  = Verb(name: "take",  possibles: nearby,      doIt: takeDoIt);
 let fight = Verb(name: "fight", possibles: nearby,      doIt: fightDoIt);
@@ -48,5 +48,7 @@ let princessInCastle = Desire(item: castle, inventory:[princess]);
 
 prince = Actor(name: "Prince", attributes: [alive], abilities: [go, take, fight], desires: [princessInCastle]);
 dragon = Actor(name: "Prince", attributes: [alive], abilities: [go, take, fight], desires: [princessInCave]);
+
+Story.tell();
 
 

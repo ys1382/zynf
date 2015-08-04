@@ -147,7 +147,7 @@ class Action : NSObject {
     }
 }
 
-class Sitch {
+class Sitch: CustomStringConvertible {
     var instances = [Item:Instance]();
     var consequences = [Action:Sitch]();
     func add(instance:Instance) {
@@ -164,6 +164,9 @@ class Sitch {
     func tell() -> String {
         return Array(self.instances.values).description;
     }
+    var description: String {
+        return String(self.instances.values);
+    }
 }
 
 class Story {
@@ -173,12 +176,13 @@ class Story {
         self.arc.append(sitch);
     }
     var score: Int {
-        return 7;
+        return arc.reduce(0, combine: { $0 + $1.score });
     }
 
-    func tell() {
+    static func tell() {
         let s = Story();
-        let t = s.arc.reduce("Once upon a time,\n", combine:{ $0 + $1.tell() } );
+        var t = s.arc.reduce("Once upon a time...\n", combine:{ $0 + $1.description } );
+        t += "...and they lived happily ever after.";
         print(t);
     }
 }
