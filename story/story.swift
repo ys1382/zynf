@@ -3,6 +3,9 @@ import Foundation
 let True = NSNumber(bool: true);
 let False = NSNumber(bool: false);
 
+typealias PossibleActions = (sitch: Sitch, verb:Verb, subject: Instance) -> [Action];
+typealias DoIt = (sitch: Sitch, action: Action) -> ();
+
 extension RangeReplaceableCollectionType where Generator.Element : Equatable {    
     // Remove first collection element that is equal to the given object:
     mutating func removeObject(object : Generator.Element) {
@@ -37,32 +40,31 @@ class Attribute : NSObject {
 }
 
 class Desire {
-    var item: Item;
-    var attribute: Attribute?;
-    var value: NSObject?;
-    var inventory: [Item]?;
+    var item: Item
+    var attribute: Attribute
+    var value: NSObject?
+//    var inventory: [Item]?;
 
     init(item: Item, attribute: Attribute, value: NSObject) {
-        self.item = item;
-        self.attribute = attribute;
-        self.value = value;
-        self.inventory = nil;
+        self.item = item
+        self.attribute = attribute
+        self.value = value
+//        self.inventory = nil;
     }
     
-    init(item: Item, inventory: [Item]) {
-        self.item = item;
-        self.inventory = inventory;
-        self.attribute = nil;
-        self.value = nil;
-    }
+//    init(item: Item, inventory: [Item]) {
+//        self.item = item
+//        self.inventory = inventory;
+//        self.attribute = nil;
+//        self.value = nil;
+//    }
     
     func satisfied(sitch:Sitch) -> Bool {
         let instance = sitch.get(self.item);
-        if (self.attribute != nil) {
-            return instance.get(self.attribute!) == self.value!;
-        } else {
-            return instance.inventory.contains(self.inventory!);
-        }
+//        if (self.attribute != nil) {
+            return instance.get(self.attribute) == self.value!;
+//        }
+        
     }
 }
 
@@ -85,8 +87,8 @@ class Actor: Item {
 class Instance : NSObject {
     var model: Item;
     var values: [Attribute: NSObject];
-    var inventory = [Item](); // things I have
-    var within: Instance?; // the thing that has me (location, vessel, etc.)
+//    var inventory = [Item](); // things I have
+//    var within: Instance?; // the thing that has me (location, vessel, etc.)
 
     init(model: Item, values: [Attribute: NSObject]) {
         self.model = model;
@@ -101,32 +103,29 @@ class Instance : NSObject {
         self.values[attribute] = value;
     }
     
-    func transfer(to:Instance) {
-        if (within != nil) {
-            within!.inventory.removeObject(self.model);
-        }
-        to.inventory.append(self.model);
-        self.within = to;
-        
-    }
+//    func transfer(to:Instance) {
+//        if (within != nil) {
+//            within!.inventory.removeObject(self.model);
+//        }
+//        to.inventory.append(self.model);
+//        self.within = to;
+//    }
+
 }
 
-typealias Possibles = (sitch: Sitch, verb:Verb, subject: Instance) -> [Action];
-typealias DoIt = (sitch: Sitch, action: Action) -> ();
-
-let nearby: Possibles = {
-    let sitch = $0;
-    let verb = $1;
-    let subject = $2;
-    let iaf = Item.all.filter({ subject.within == sitch.get($0).within });
-    return iaf.map( { Action(verb: verb, subject: subject, object1: sitch.get($0)) } );
-}
+//let nearby: PossibleActions = {
+//    let sitch = $0;
+//    let verb = $1;
+//    let subject = $2;
+//    let iaf = Item.all.filter({ subject.within == sitch.get($0).within });
+//    return iaf.map( { Action(verb: verb, subject: subject, object1: sitch.get($0)) } );
+//}
 
 class Verb {
     var name: String;
-    var possibles: Possibles;
+    var possibles: PossibleActions;
     var doIt: DoIt;
-    init(name: String, possibles: Possibles, doIt: DoIt) {
+    init(name: String, possibles: PossibleActions, doIt: DoIt) {
         self.name = name;
         self.possibles = possibles;
         self.doIt = doIt;
