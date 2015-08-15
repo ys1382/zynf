@@ -3,7 +3,7 @@ import Foundation
 let True = NSNumber(bool: true);
 let False = NSNumber(bool: false);
 
-typealias PossibleActions = (sitch: Sitch, verb:Verb, subject: Instance) -> [Action];
+typealias PossibleActions = (sitch: Sitch, verb:Verb, subject: Item) -> [Action];
 typealias DoIt = (sitch: Sitch, action: Action) -> ();
 
 extension RangeReplaceableCollectionType where Generator.Element : Equatable {    
@@ -43,28 +43,16 @@ class Desire {
     var item: Item
     var attribute: Attribute
     var value: NSObject?
-//    var inventory: [Item]?;
 
     init(item: Item, attribute: Attribute, value: NSObject) {
         self.item = item
         self.attribute = attribute
         self.value = value
-//        self.inventory = nil;
     }
-    
-//    init(item: Item, inventory: [Item]) {
-//        self.item = item
-//        self.inventory = inventory;
-//        self.attribute = nil;
-//        self.value = nil;
-//    }
-    
+
     func satisfied(sitch:Sitch) -> Bool {
         let instance = sitch.get(self.item);
-//        if (self.attribute != nil) {
-            return instance.get(self.attribute) == self.value!;
-//        }
-        
+        return instance.get(self.attribute) == self.value!;
     }
 }
 
@@ -87,8 +75,6 @@ class Actor: Item {
 class Instance : NSObject {
     var model: Item;
     var values: [Attribute: NSObject];
-//    var inventory = [Item](); // things I have
-//    var within: Instance?; // the thing that has me (location, vessel, etc.)
 
     init(model: Item, values: [Attribute: NSObject]) {
         self.model = model;
@@ -102,24 +88,7 @@ class Instance : NSObject {
     func set(attribute:Attribute, value:NSObject) {
         self.values[attribute] = value;
     }
-    
-//    func transfer(to:Instance) {
-//        if (within != nil) {
-//            within!.inventory.removeObject(self.model);
-//        }
-//        to.inventory.append(self.model);
-//        self.within = to;
-//    }
-
 }
-
-//let nearby: PossibleActions = {
-//    let sitch = $0;
-//    let verb = $1;
-//    let subject = $2;
-//    let iaf = Item.all.filter({ subject.within == sitch.get($0).within });
-//    return iaf.map( { Action(verb: verb, subject: subject, object1: sitch.get($0)) } );
-//}
 
 class Verb {
     var name: String;
@@ -134,10 +103,10 @@ class Verb {
 
 class Action : NSObject {
     var verb: Verb;
-    var subject: Instance;
-    var object1, object2: Instance?;
+    var subject: Item;
+    var object1, object2: Item?;
     var value: NSObject?;
-    init(verb:Verb, subject: Instance, object1: Instance? = nil, object2:Instance? = nil, value:NSObject? = nil) {
+    init(verb:Verb, subject: Item, object1: Item? = nil, object2:Item? = nil, value:NSObject? = nil) {
         self.verb = verb;
         self.subject = subject;
         self.object1 = object1;
