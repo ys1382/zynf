@@ -19,8 +19,9 @@ let goDoIt: DoIt = { sitch, action in
 let nearby: PossibleActions = { sitch, verb, subject in
     
     let subjectInstance = sitch.get(subject)
-    let here = subjectInstance.get(location) as! Instance
-    let neighbors = here.get(contains) as! [Item]
+    let here = subjectInstance.get(location) as! Item
+    let here2 = sitch.get(here)
+    let neighbors = here2.get(contains) as! [Item]
 
     return neighbors.map( { neighbor in Action(verb:verb, subject:subject, object1:neighbor) });
 }
@@ -38,10 +39,11 @@ let fightDoIt: DoIt = { sitch, action in
 
 cave = Item(name: "Cave");
 castle = Item(name: "Castle");
-princess = Item(name: "princess");
 
 alive = Attribute(name: "alive", possibleValues: [True, False])
 location = Attribute(name: "location", possibleValues: [cave, castle])
+
+princess = Item(name: "princess", attributes:[alive, location]);
 
 let go    = Verb(name: "go",    possibles: goPossibles, doIt: goDoIt);
 let take  = Verb(name: "take",  possibles: nearby,      doIt: takeDoIt);
@@ -50,8 +52,8 @@ let fight = Verb(name: "fight", possibles: nearby,      doIt: fightDoIt);
 let princessInCave   = Desire(item: princess, attribute:location, value:cave)
 let princessInCastle = Desire(item: princess, attribute:location, value:castle)
 
-prince = Actor(name: "Prince", attributes: [alive], abilities: [go, take, fight], desires: [princessInCastle]);
-dragon = Actor(name: "Prince", attributes: [alive], abilities: [go, take, fight], desires: [princessInCave]);
+prince = Actor(name: "Prince", attributes: [alive, location], abilities: [go, take, fight], desires: [princessInCastle]);
+dragon = Actor(name: "Prince", attributes: [alive, location], abilities: [go, take, fight], desires: [princessInCave]);
 
-Story.tell();
+Story.compose(2).tell();
 

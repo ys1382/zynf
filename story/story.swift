@@ -18,15 +18,40 @@ extension RangeReplaceableCollectionType where Generator.Element : Equatable {
     }
 }
 
+extension Array {
+//    func toDict<K,V>(map: (Element) -> (key: K, value: V)?) -> [K: V] {
+//        var dict = [K: V]()
+//        for element in self {
+//            if let (key, value) = map(element) {
+//                dict[key] = value
+//            }
+//        }
+//        return dict
+//    }
+    func rand() -> Element {
+        let n = Int(arc4random_uniform(UInt32(self.count)))
+        return self[n]
+    }
+}
+
 class Item : NSObject {
     static var all = [Item]();
     var name: String;
-    var attributes: [Attribute]?;
-    init(name: String, attributes: [Attribute]? = nil) {
+    var attributes: [Attribute];
+    
+    init(name: String, attributes: [Attribute] = [Attribute]()) {
         self.name = name;
         self.attributes = attributes;
         super.init();
         Item.all.append(self);
+    }
+    func rand() -> Instance {
+        
+        var values = [Attribute:NSObject]()
+        for attribute in self.attributes {
+            values[attribute] = attribute.possibleValues.rand()
+        }
+        return Instance(model:self, values:values)
     }
 }
 
@@ -115,41 +140,74 @@ class Action : NSObject {
     }
 }
 
-class Sitch: CustomStringConvertible {
-    var instances = [Item:Instance]();
-    var consequences = [Action:Sitch]();
-    func add(instance:Instance) {
-        self.instances[instance.model] = instance;
+class Sitch: NSObject {
+    var instances = [Item:Instance]()
+
+    init (instances:[Instance]) {
+        for instance in instances {
+            self.instances[instance.model] = instance
+        }
     }
     func get(item:Item) -> Instance {
-        return self.instances[item]!;
+        return self.instances[item]!
     }
     var score: Int {
-        let actors = instances.values.filter({ $0.model is Actor });
-        let scores = actors.map({ ($0.model as! Actor).score(self) });
-        return scores.reduce(0, combine:+);
+        let actors = instances.values.filter({ $0.model is Actor })
+        let scores = actors.map({ ($0.model as! Actor).score(self) })
+        return scores.reduce(0, combine:+)
     }
     func tell() -> String {
-        return Array(self.instances.values).description;
+        return Array(self.instances.values).description
     }
-    var description: String {
-        return String(self.instances.values);
+    override var description: String {
+        return String(self.instances.values)
+    }
+
+    static func rand() -> Sitch {
+        let instances = Item.all.map({ item in item.rand() })
+        return Sitch(instances:instances)
+    }
+    
+    func copyWithZone(zone: NSZone) -> AnyObject! {
+        return Sitch(instances: Array(self.instances.values))
     }
 }
 
 class Story {
     var arc = [Sitch]();
 
-    func add(sitch: Sitch) {
-        self.arc.append(sitch);
+    init(sitch:Sitch) {
+        self.arc.append(sitch)
     }
+    
     var score: Int {
         return arc.reduce(0, combine: { $0 + $1.score });
     }
+    
+    func plot(count:Int) {
+        let sitch = self.arc.last
+        for _ in 0..<count {
+            let sitch = sitch!.copy() as! Sitch
+            let actor = Item.all.filter( { item in item is Actor } ).rand() as! Actor
+            let verb = actor.abilities.rand()
+            let action = verb.possibles(sitch: sitch, verb:verb, subject:actor).rand()
+            verb.doIt(sitch: sitch, action:action)
+            self.arc.append(sitch)
+        }
+    }
+    
+    static func compose(count:Int) -> Story {
+        var stories = [Story]()
+        let sitches = (1..<count).map( { n in Sitch.rand() }) // pick some random starting points
+        for sitch in sitches {
+            let story = Story(sitch:sitch)
+            story.plot(count) // pick random events to make story
+        }
+        return stories[1..<stories.count].reduce(stories[0], combine:{ $0.score > $1.score ? $0 : $1 })
+    }
 
-    static func tell() {
-        let s = Story();
-        var t = s.arc.reduce("Once upon a time...\n", combine:{ $0 + $1.description } );
+    func tell() {
+        var t = self.arc.reduce("Once upon a time...\n", combine:{ $0 + $1.description } );
         t += "...and they lived happily ever after.";
         print(t);
     }
