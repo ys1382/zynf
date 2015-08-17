@@ -3,7 +3,7 @@ import Foundation
 let True = NSNumber(bool: true);
 let False = NSNumber(bool: false);
 
-typealias PossibleActions = (sitch: Sitch, verb:Verb, subject: Item) -> [Action];
+typealias PossibleActions = (sitch: Sitch, verb:Verb, subject: Item) -> [Action]
 typealias DoIt = (sitch: Sitch, action: Action) -> ();
 
 extension RangeReplaceableCollectionType where Generator.Element : Equatable {    
@@ -19,15 +19,6 @@ extension RangeReplaceableCollectionType where Generator.Element : Equatable {
 }
 
 extension Array {
-//    func toDict<K,V>(map: (Element) -> (key: K, value: V)?) -> [K: V] {
-//        var dict = [K: V]()
-//        for element in self {
-//            if let (key, value) = map(element) {
-//                dict[key] = value
-//            }
-//        }
-//        return dict
-//    }
     func rand() -> Element {
         let n = Int(arc4random_uniform(UInt32(self.count)))
         return self[n]
@@ -138,6 +129,16 @@ class Action : NSObject {
         self.object2 = object2;
         self.value = value;
     }
+    
+    override var description: String {
+        let a = self.subject.name + " " + self.verb.name + " "
+        let b = self.object1 != nil ? self.object1!.name : ""
+        let c = self.object2 != nil ? self.object1!.name : ""
+        var s = a+b+c
+        let d = String(s.capitalizedString[s.startIndex])
+        s.removeAtIndex(s.startIndex)
+        return d + s + ".\n"
+    }
 }
 
 class Sitch: NSObject {
@@ -174,40 +175,30 @@ class Sitch: NSObject {
 }
 
 class Story {
-    var arc = [Sitch]();
+    var actions = [Action]()
+    var score = 0
 
-    init(sitch:Sitch) {
-        self.arc.append(sitch)
-    }
-    
-    var score: Int {
-        return arc.reduce(0, combine: { $0 + $1.score });
-    }
-    
-    func plot(count:Int) {
-        let sitch = self.arc.last
+    init(sitch:Sitch, count:Int) {
+
         for _ in 0..<count {
-            let sitch = sitch!.copy() as! Sitch
+            let sitch = sitch.copy() as! Sitch
             let actor = Item.all.filter( { item in item is Actor } ).rand() as! Actor
             let verb = actor.abilities.rand()
             let action = verb.possibles(sitch: sitch, verb:verb, subject:actor).rand()
             verb.doIt(sitch: sitch, action:action)
-            self.arc.append(sitch)
+            self.actions.append(action)
+            self.score += sitch.score
         }
     }
-    
+
     static func compose(count:Int) -> Story {
-        var stories = [Story]()
-        let sitches = (1..<count).map( { n in Sitch.rand() }) // pick some random starting points
-        for sitch in sitches {
-            let story = Story(sitch:sitch)
-            story.plot(count) // pick random events to make story
-        }
+        let sitches = (0..<count).map( { n in Sitch.rand() }) // pick some random starting points
+        let stories = sitches.map( { sitch in Story(sitch: sitch, count:count) } )
         return stories[1..<stories.count].reduce(stories[0], combine:{ $0.score > $1.score ? $0 : $1 })
     }
 
     func tell() {
-        var t = self.arc.reduce("Once upon a time...\n", combine:{ $0 + $1.description } );
+        var t = self.actions.reduce("Once upon a time...\n", combine:{ $0 + $1.description } );
         t += "...and they lived happily ever after.";
         print(t);
     }
