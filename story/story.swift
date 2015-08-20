@@ -19,7 +19,10 @@ extension RangeReplaceableCollectionType where Generator.Element : Equatable {
 }
 
 extension Array {
-    func rand() -> Element {
+    func rand() -> Element? {
+        if self.count == 0 {
+            return nil
+        }
         let n = Int(arc4random_uniform(UInt32(self.count)))
         return self[n]
     }
@@ -184,10 +187,11 @@ class Story {
             let sitch = sitch.copy() as! Sitch
             let actor = Item.all.filter( { item in item is Actor } ).rand() as! Actor
             let verb = actor.abilities.rand()
-            let action = verb.possibles(sitch: sitch, verb:verb, subject:actor).rand()
-            verb.doIt(sitch: sitch, action:action)
-            self.actions.append(action)
-            self.score += sitch.score
+            if let action = verb!.possibles(sitch: sitch, verb:verb!, subject:actor).rand() {
+                verb!.doIt(sitch: sitch, action:action)
+                self.actions.append(action)
+                self.score += sitch.score
+            }
         }
     }
 
