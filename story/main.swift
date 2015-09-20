@@ -1,3 +1,4 @@
+play()
 
 var prince, dragon: Actor
 var princess, cave, castle: Item
@@ -72,4 +73,5 @@ prince = Actor(name: "the Prince", attributes: [alive, location], abilities: [go
 dragon = Actor(name: "the Dragon", attributes: [alive, location], abilities: [go, take, kill], desires: [princessInCave]);
 
 Story.compose(3).tell();
+
 
