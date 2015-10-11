@@ -1,111 +1,112 @@
-import AVFoundation
+//
+//  main.swift
+//  SineWavePlayer
+//
+//  Created by Ales Tsurko on 08.09.15.
+//
+
 import Foundation
+import AudioToolbox
 
-// The maximum number of audio buffers in flight. Setting to two allows one
-// buffer to be played while the next is being written.
-private let kInFlightAudioBuffers: Int = 2
+let sineFrequency = 880.0
 
-// The number of audio samples per buffer. A lower value reduces latency for
-// changes but requires more processing but increases the risk of being unable
-// to fill the buffers in time. A setting of 1024 represents about 23ms of
-// samples.
-private let kSamplesPerBuffer: AVAudioFrameCount = 1024
+// MARK: User data struct
+struct SineWavePlayer {
+    var outputUnit: AudioUnit = nil
+    var startingFrameCount: Double = 0
+}
 
-// The single FM synthesizer instance.
-private let gFMSynthesizer: FMSynthesizer = FMSynthesizer()
-
-public class FMSynthesizer {
+// MARK: Callback function
+let SineWaveRenderProc: AURenderCallback = {(inRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData) -> OSStatus in
+    var player = UnsafeMutablePointer<SineWavePlayer>(inRefCon)
     
-    // The audio engine manages the sound system.
-    private let engine: AVAudioEngine = AVAudioEngine()
+    var j = player.memory.startingFrameCount
+    let cycleLength = 44100 / sineFrequency
     
-    // The player node schedules the playback of the audio buffers.
-    private let playerNode: AVAudioPlayerNode = AVAudioPlayerNode()
-    
-    // Use standard non-interleaved PCM audio.
-    let audioFormat = AVAudioFormat(standardFormatWithSampleRate: 44100.0, channels: 2)
-    
-    // A circular queue of audio buffers.
-    private var audioBuffers: [AVAudioPCMBuffer] = [AVAudioPCMBuffer]()
-    
-    // The index of the next buffer to fill.
-    private var bufferIndex: Int = 0
-    
-    // The dispatch queue to render audio samples.
-    private let audioQueue: dispatch_queue_t = dispatch_queue_create("FMSynthesizerQueue", DISPATCH_QUEUE_SERIAL)
-    
-    // A semaphore to gate the number of buffers processed.
-    private let audioSemaphore: dispatch_semaphore_t = dispatch_semaphore_create(kInFlightAudioBuffers)
-    
-    public class func sharedSynth() -> FMSynthesizer {
-        return gFMSynthesizer
-    }
-    
-    private init() {
-        // Create a pool of audio buffers.
-        for var i = 0;  i < kInFlightAudioBuffers; i++ {
-            let audioBuffer = AVAudioPCMBuffer(PCMFormat: audioFormat, frameCapacity: kSamplesPerBuffer)
-            audioBuffers.append(audioBuffer)
+    for frame in 0..<inNumberFrames {
+        var buffers = UnsafeMutableAudioBufferListPointer(ioData)
+        
+        UnsafeMutablePointer<Float32>(buffers[0].mData)[Int(frame)] = Float32(sin(2 * M_PI * (j / cycleLength)))
+        UnsafeMutablePointer<Float32>(buffers[1].mData)[Int(frame)] = Float32(sin(2 * M_PI * (j / cycleLength)))
+        
+        // Or iterate through array:
+        //        for buffer in buffers {
+        //            UnsafeMutablePointer<Float32>(buffer.mData)[Int(frame)] = Float32(sin(2 * M_PI * (j / cycleLength)))
+        //        }
+        
+        j++
+        if j > cycleLength {
+            j -= cycleLength
         }
-        
-        // Attach and connect the player node.
-        engine.attachNode(playerNode)
-        engine.connect(playerNode, to: engine.mainMixerNode, format: audioFormat)
-        
-        do {
-            try engine.start()
-        } catch _ {
-            NSLog("Error starting audio engine")
-        }
-        
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "audioEngineConfigurationChange:", name: AVAudioEngineConfigurationChangeNotification, object: engine)
     }
     
-    public func play(carrierFrequency: Float32, modulatorFrequency: Float32, modulatorAmplitude: Float32) {
-        let unitVelocity = Float32(2.0 * M_PI / audioFormat.sampleRate)
-        let carrierVelocity = carrierFrequency * unitVelocity
-        let modulatorVelocity = modulatorFrequency * unitVelocity
+    player.memory.startingFrameCount = j
+    return noErr
+}
 
-//        dispatch_async(audioQueue) {
-            var sampleTime: Float32 = 0
-//            while true {
-                // Wait for a buffer to become available.
-//                dispatch_semaphore_wait(self.audioSemaphore, DISPATCH_TIME_FOREVER)
-        
-                // Fill the buffer with new samples.
-                let audioBuffer = self.audioBuffers[self.bufferIndex]
-                let leftChannel = audioBuffer.floatChannelData[0]
-                let rightChannel = audioBuffer.floatChannelData[1]
-                for var sampleIndex = 0; sampleIndex < Int(kSamplesPerBuffer); sampleIndex++ {
-                    let sample = sin(carrierVelocity * sampleTime + modulatorAmplitude * sin(modulatorVelocity * sampleTime))
-                    leftChannel[sampleIndex] = sample
-                    rightChannel[sampleIndex] = sample
-                    sampleTime++
-                }
-                audioBuffer.frameLength = kSamplesPerBuffer
-                
-                // Schedule the buffer for playback and release it for reuse after
-                // playback has finished.
-                self.playerNode.scheduleBuffer(audioBuffer) {
-//                    dispatch_semaphore_signal(self.audioSemaphore)
-                    return
-                }
-        
-                self.bufferIndex = (self.bufferIndex + 1) % self.audioBuffers.count
-//            }
-//        }
-        
-//        playerNode.pan = 0.8
-        playerNode.play()
+// MARK: Utility function
+func CheckError(error: OSStatus, operation: String) {
+    guard error != noErr else {
+        return
     }
     
-    @objc private func audioEngineConfigurationChange(notification: NSNotification) -> Void {
-        NSLog("Audio engine configuration change: \(notification)")
+    var result: String = ""
+    var char = Int(error.bigEndian)
+    
+    for _ in 0..<4 {
+        guard isprint(Int32(char&255)) == 1 else {
+            result = "\(error)"
+            break
+        }
+        result.append(UnicodeScalar(char&255))
+        char = char/256
     }
     
+    print("Error: \(operation) (\(result))")
+    
+    exit(1)
+}
+
+func CreateAndConnectOutputUnit(inout player: SineWavePlayer) {
+    // Generate a description that matches the output device (speakers)
+    var outputcd = AudioComponentDescription(componentType: kAudioUnitType_Output, componentSubType: kAudioUnitSubType_DefaultOutput, componentManufacturer: kAudioUnitManufacturer_Apple, componentFlags: 0, componentFlagsMask: 0)
+    
+    let comp = AudioComponentFindNext(nil, &outputcd)
+    
+    if comp == nil {
+        print("Can't get output unit")
+        exit(-1)
+    }
+    
+    CheckError(AudioComponentInstanceNew(comp, &player.outputUnit),
+        operation: "Couldn't open component for outputUnit")
+    
+    // Register the render callback
+    var input = AURenderCallbackStruct(inputProc: SineWaveRenderProc, inputProcRefCon: &player)
+    
+    CheckError(AudioUnitSetProperty(player.outputUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &input, UInt32(sizeof(input.dynamicType))),
+        operation: "AudioUnitSetProperty failed")
+    
+    // Initialize the unit
+    CheckError(AudioUnitInitialize(player.outputUnit),
+        operation: "Couldn't initialize output unit")
 }
 
 func play() {
-    // Play a bell sound:
-    FMSynthesizer.sharedSynth().play(440.0, modulatorFrequency: 679.0, modulatorAmplitude: 0.8)
+    var player = SineWavePlayer()
+    
+    // Set up output unit and callback
+    CreateAndConnectOutputUnit(&player)
+    
+    // Start playing
+    CheckError(AudioOutputUnitStart(player.outputUnit),
+        operation: "Couldn't start output unit")
+    
+    // Play for 5 seconds
+    sleep(5)
+    
+    // Clean up
+    AudioOutputUnitStop(player.outputUnit)
+    AudioUnitUninitialize(player.outputUnit)
+    AudioComponentInstanceDispose(player.outputUnit)
 }
