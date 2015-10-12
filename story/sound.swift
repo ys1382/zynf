@@ -1,46 +1,41 @@
-//
-//  main.swift
-//  SineWavePlayer
-//
-//  Created by Ales Tsurko on 08.09.15.
-//
-
 import Foundation
 import AudioToolbox
 
 let sineFrequency = 880.0
+var count = 0
+let sampleFrequency = 44100.0
+let bpm = Int(sampleFrequency) / 4
 
 // MARK: User data struct
 struct SineWavePlayer {
     var outputUnit: AudioUnit = nil
-    var startingFrameCount: Double = 0
+    var startingFrameCount = 0
 }
 
 // MARK: Callback function
 let SineWaveRenderProc: AURenderCallback = {(inRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData) -> OSStatus in
     var player = UnsafeMutablePointer<SineWavePlayer>(inRefCon)
-    
-    var j = player.memory.startingFrameCount
-    let cycleLength = 44100 / sineFrequency
-    
+    let cycleLength = sampleFrequency / sineFrequency
+
     for frame in 0..<inNumberFrames {
+        count = count + 1
         var buffers = UnsafeMutableAudioBufferListPointer(ioData)
-        
-        UnsafeMutablePointer<Float32>(buffers[0].mData)[Int(frame)] = Float32(sin(2 * M_PI * (j / cycleLength)))
-        UnsafeMutablePointer<Float32>(buffers[1].mData)[Int(frame)] = Float32(sin(2 * M_PI * (j / cycleLength)))
-        
-        // Or iterate through array:
-        //        for buffer in buffers {
-        //            UnsafeMutablePointer<Float32>(buffer.mData)[Int(frame)] = Float32(sin(2 * M_PI * (j / cycleLength)))
-        //        }
-        
-        j++
-        if j > cycleLength {
-            j -= cycleLength
+        let index = Double(player.memory.startingFrameCount + Int(frame))
+
+        var up = 1.0
+        if count > bpm {
+            up = 2.0
         }
+        if count > 2 * bpm {
+            count = 0
+        }
+        
+        let value = Float32(sin(2 * M_PI * (index / cycleLength * up)))
+        UnsafeMutablePointer<Float32>(buffers[0].mData)[Int(frame)] = value
+        UnsafeMutablePointer<Float32>(buffers[1].mData)[Int(frame)] = value
     }
-    
-    player.memory.startingFrameCount = j
+
+    player.memory.startingFrameCount = (player.memory.startingFrameCount + Int(inNumberFrames)) % Int(cycleLength)
     return noErr
 }
 
@@ -103,7 +98,7 @@ func play() {
         operation: "Couldn't start output unit")
     
     // Play for 5 seconds
-    sleep(5)
+    sleep(4)
     
     // Clean up
     AudioOutputUnitStop(player.outputUnit)
