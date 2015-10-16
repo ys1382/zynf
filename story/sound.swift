@@ -1,10 +1,12 @@
 import Foundation
 import AudioToolbox
 
-let sineFrequency = 880.0
-var count = 0
 let sampleFrequency = 44100.0
+let sineFrequency = 880.0
+let step = pow(2, 1.0/12)
+var count = 0
 let bpm = Int(sampleFrequency) / 4
+var note = -10.0
 
 // MARK: User data struct
 struct SineWavePlayer {
@@ -15,27 +17,27 @@ struct SineWavePlayer {
 // MARK: Callback function
 let SineWaveRenderProc: AURenderCallback = {(inRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData) -> OSStatus in
     var player = UnsafeMutablePointer<SineWavePlayer>(inRefCon)
-    let cycleLength = sampleFrequency / sineFrequency
+    var freq = 1.0
 
     for frame in 0..<inNumberFrames {
+
+        if count % bpm == 0 {
+            note = note + 1
+        }
+        freq = sampleFrequency * pow(step, -note)
+        let cycleLength = freq / sineFrequency
+
         count = count + 1
         var buffers = UnsafeMutableAudioBufferListPointer(ioData)
         let index = Double(player.memory.startingFrameCount + Int(frame))
 
-        var up = 1.0
-        if count > bpm {
-            up = 2.0
-        }
-        if count > 2 * bpm {
-            count = 0
-        }
-        
-        let value = Float32(sin(2 * M_PI * (index / cycleLength * up)))
+        let value = Float32(sin(2 * M_PI * (index / cycleLength)))
         UnsafeMutablePointer<Float32>(buffers[0].mData)[Int(frame)] = value
         UnsafeMutablePointer<Float32>(buffers[1].mData)[Int(frame)] = value
     }
 
-    player.memory.startingFrameCount = (player.memory.startingFrameCount + Int(inNumberFrames)) % Int(cycleLength)
+    player.memory.startingFrameCount = (player.memory.startingFrameCount + Int(inNumberFrames))
+        //% Int(freq / sineFrequency)
     return noErr
 }
 
