@@ -7,12 +7,19 @@ let step = pow(2, 1.0/12)
 var count = 0
 let bpm = Int(sampleFrequency) / 4
 var note = -10.0
+var intervals = [-5,-3,3,5]
 
 // MARK: User data struct
 struct SineWavePlayer {
     var outputUnit: AudioUnit = nil
     var startingFrameCount = 0
 }
+
+// next steps:
+// 1) come up with a sequence of notes, then play them.
+// 2) Each interval is most likely a 3rd or 5th, or anything else, close more likely than distant.
+// 3) Each note may be split into 1, 1/2, 1/3, 1/4, in order of probability
+// 4) the second of the split is off by an interval
 
 // MARK: Callback function
 let SineWaveRenderProc: AURenderCallback = {(inRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData) -> OSStatus in
@@ -22,7 +29,10 @@ let SineWaveRenderProc: AURenderCallback = {(inRefCon, ioActionFlags, inTimeStam
     for frame in 0..<inNumberFrames {
 
         if count % bpm == 0 {
-            note = note + 1
+            let intervalIndex = Int(arc4random_uniform(UInt32(intervals.count)))
+            let interval = Double(intervals[intervalIndex])
+            print(note, interval)
+            note = -10 + interval
         }
         freq = sampleFrequency * pow(step, -note)
         let cycleLength = freq / sineFrequency
