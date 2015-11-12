@@ -1,18 +1,18 @@
-//
-//  GameViewController.swift
-//  sc
-//
-//  Created by Saib, Yusuf on 11/2/15.
-//  Copyright (c) 2015 x. All rights reserved.
-//
-
 import SceneKit
 import QuartzCore
+
+
+struct Position {
+    var x=CGFloat(0), y=CGFloat(0), z=CGFloat(0) // movement
+    var a=CGFloat(0), b=CGFloat(0), c=CGFloat(0) // rotation
+}
 
 class GameViewController: NSViewController {
     
     @IBOutlet weak var gameView: GameView!
     
+    var guy = SCNNode()
+    var position = Position()
     
     override func awakeFromNib(){
         sceneB()
@@ -21,6 +21,20 @@ class GameViewController: NSViewController {
     override func keyDown(event: NSEvent) {
         super.keyDown(event)
         print("Caught a key down: \(event.keyCode)!")
+        interpretKeyEvents([event]) // calls insertText(_:), moveUp(_:), etc.
+    }
+    
+    override func moveUp    (sender: AnyObject?) { guyMoveX(0, y:0, z:100,  a:0, b:0,  c:0) }
+    override func moveDown  (sender: AnyObject?) { guyMoveX(0, y:0, z:-100, a:0, b:0,  c:0) }
+    override func moveRight (sender: AnyObject?) { guyMoveX(0, y:0, z:0,    a:0, b:0.5,  c:0) }
+    override func moveLeft  (sender: AnyObject?) { guyMoveX(0, y:0, z:0,    a:0, b:0.5, c:0) }
+    
+    func guyMoveX(x:Int, y:Int, z:Int, a:Int, b:CGFloat, c:Int) {
+
+        let move = SCNAction.moveByX(CGFloat(x), y:CGFloat(y), z:CGFloat(z), duration:1)
+        let rotate = SCNAction.rotateByX(CGFloat(a), y:CGFloat(b), z:CGFloat(c), duration:1.0)
+        guy.runAction(move)
+        guy.runAction(rotate)
     }
 
     func sceneB() {
@@ -29,9 +43,11 @@ class GameViewController: NSViewController {
 
         let walking = SCNScene(named: "art.scnassets/walking")
         let nodeArray = walking!.rootNode.childNodes
+        
         for childNode in nodeArray {
-            self.gameView.scene!.rootNode.addChildNode(childNode as SCNNode)
+            guy.addChildNode(childNode as SCNNode)
         }
+        self.gameView.scene!.rootNode.addChildNode(guy)
         
         let plane = SCNPlane(width: 100.0, height: 200.0)
         let floor = SCNNode(geometry: plane)
