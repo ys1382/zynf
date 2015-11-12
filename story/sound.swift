@@ -6,8 +6,9 @@ let sineFrequency = 880.0
 let step = pow(2, 1.0/12)
 var count = 0
 let bpm = Int(sampleFrequency) / 4
-var note = -10.0
 var intervals = [-5,-3,3,5]
+var song:[Int] = []
+var beat = 0
 
 // MARK: User data struct
 struct SineWavePlayer {
@@ -17,24 +18,52 @@ struct SineWavePlayer {
 
 // next steps:
 // 1) come up with a sequence of notes, then play them.
+
+func compose(detail:Int) {
+
+//    var y = [4,5,6,7]
+//    x.insertContentsOf(y, at: 2)
+
+    let base = -10
+    
+    for _ in 0..<detail {
+        let intervalIndex = Int(arc4random_uniform(UInt32(intervals.count)))
+        let interval = intervals[intervalIndex]
+        //print(note, interval)
+        let note = base + interval
+        song.append(note)
+    }
+    print(song)
+}
+
+
 // 2) Each interval is most likely a 3rd or 5th, or anything else, close more likely than distant.
 // 3) Each note may be split into 1, 1/2, 1/3, 1/4, in order of probability
 // 4) the second of the split is off by an interval
+// 5) repeat some
+// 6) synchronize with text
+
+
+
 
 // MARK: Callback function
 let SineWaveRenderProc: AURenderCallback = {(inRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData) -> OSStatus in
     var player = UnsafeMutablePointer<SineWavePlayer>(inRefCon)
     var freq = 1.0
+    var note = -10.0
 
     for frame in 0..<inNumberFrames {
 
         if count % bpm == 0 {
-            let intervalIndex = Int(arc4random_uniform(UInt32(intervals.count)))
-            let interval = Double(intervals[intervalIndex])
-            print(note, interval)
-            note = -10 + interval
+//            let intervalIndex = Int(arc4random_uniform(UInt32(intervals.count)))
+//            let interval = Double(intervals[intervalIndex])
+//            print(note, interval)
+//            note = -10 + interval
+            beat = beat + 1
+            note = Double(song[beat%song.count])
+            print(beat, note)
         }
-        freq = sampleFrequency * pow(step, -note)
+        freq = sampleFrequency * pow(Double(step), -note)
         let cycleLength = freq / sineFrequency
 
         count = count + 1
@@ -48,6 +77,7 @@ let SineWaveRenderProc: AURenderCallback = {(inRefCon, ioActionFlags, inTimeStam
 
     player.memory.startingFrameCount = (player.memory.startingFrameCount + Int(inNumberFrames))
         //% Int(freq / sineFrequency)
+//    print(count)
     return noErr
 }
 
@@ -100,6 +130,9 @@ func CreateAndConnectOutputUnit(inout player: SineWavePlayer) {
 }
 
 func play() {
+    
+    compose(10)
+    
     var player = SineWavePlayer()
     
     // Set up output unit and callback
