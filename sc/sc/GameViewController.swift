@@ -7,29 +7,49 @@ struct Position {
     var a=CGFloat(0), b=CGFloat(0), c=CGFloat(0) // rotation
 }
 
+func daeToNode(dae:String) -> SCNNode {
+    let walking = SCNScene(named: "art.scnassets/" + dae)
+    let nodeArray = walking!.rootNode.childNodes
+    let node = SCNNode()
+    
+    for childNode in nodeArray {
+        node.addChildNode(childNode as SCNNode)
+    }
+    node.pivot = SCNMatrix4MakeRotation(CGFloat(M_PI), 0, 1, 0)
+    return node
+}
+
 class GameViewController: NSViewController {
     
     @IBOutlet weak var gameView: GameView!
     
-    var guy = SCNNode()
+    var guy = daeToNode("walking")
+    var idle = daeToNode("idle")
     var position = Position()
     
     override func awakeFromNib(){
         sceneB()
     }
 
-    override func moveUp    (sender: AnyObject?) { guyMoveX(0, y:0, z:-100,     a:0, b:0,    c:0) }
+    override func moveUp    (sender: AnyObject?) { guyMoveX(0, y:0, z:-100, a:0, b:0,    c:0) }
     override func moveDown  (sender: AnyObject?) { guyMoveX(0, y:0, z:100,  a:0, b:0,    c:0) }
     override func moveRight (sender: AnyObject?) { guyMoveX(0, y:0, z:0,    a:0, b:0.5,  c:0) }
     override func moveLeft  (sender: AnyObject?) { guyMoveX(0, y:0, z:0,    a:0, b:-0.5, c:0) }
     
     func guyMoveX(x:Int, y:Int, z:Int, a:CGFloat, b:CGFloat, c:CGFloat) {
 
+        guy.hidden = false
+        idle.hidden = true
+        
         let move = localMove(guy, x:CGFloat(x), y:CGFloat(y), z:CGFloat(z))
-        // SCNAction.moveByX(CGFloat(x), y:CGFloat(y), z:CGFloat(z), duration:1)
         let rotate = SCNAction.rotateByX(CGFloat(a), y:CGFloat(b), z:CGFloat(c), duration:1.0)
-        guy.runAction(move)
         guy.runAction(rotate)
+        guy.runAction(move, completionHandler: {
+            self.guy.hidden = true
+            self.idle.position = self.guy.position
+            self.idle.orientation = self.guy.orientation
+            self.idle.hidden = false
+        })
     }
 
     func localMove(node:SCNNode, x:CGFloat, y:CGFloat, z:CGFloat) -> SCNAction {
@@ -44,16 +64,11 @@ class GameViewController: NSViewController {
     
     func sceneB() {
 
+        guy.hidden = true
         self.gameView.scene = SCNScene()
 
-        let walking = SCNScene(named: "art.scnassets/walking")
-        let nodeArray = walking!.rootNode.childNodes
-        
-        for childNode in nodeArray {
-            guy.addChildNode(childNode as SCNNode)
-        }
-        guy.pivot = SCNMatrix4MakeRotation(CGFloat(M_PI), 0, 1, 0)
         self.gameView.scene!.rootNode.addChildNode(guy)
+        self.gameView.scene!.rootNode.addChildNode(idle)
         
         let plane = SCNPlane(width: 100.0, height: 200.0)
         let floor = SCNNode(geometry: plane)
