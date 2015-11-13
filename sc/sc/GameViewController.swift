@@ -18,25 +18,30 @@ class GameViewController: NSViewController {
         sceneB()
     }
 
-    override func keyDown(event: NSEvent) {
-        super.keyDown(event)
-        print("Caught a key down: \(event.keyCode)!")
-        interpretKeyEvents([event]) // calls insertText(_:), moveUp(_:), etc.
-    }
-    
-    override func moveUp    (sender: AnyObject?) { guyMoveX(0, y:0, z:100,  a:0, b:0,  c:0) }
-    override func moveDown  (sender: AnyObject?) { guyMoveX(0, y:0, z:-100, a:0, b:0,  c:0) }
+    override func moveUp    (sender: AnyObject?) { guyMoveX(0, y:0, z:-100,     a:0, b:0,    c:0) }
+    override func moveDown  (sender: AnyObject?) { guyMoveX(0, y:0, z:100,  a:0, b:0,    c:0) }
     override func moveRight (sender: AnyObject?) { guyMoveX(0, y:0, z:0,    a:0, b:0.5,  c:0) }
-    override func moveLeft  (sender: AnyObject?) { guyMoveX(0, y:0, z:0,    a:0, b:0.5, c:0) }
+    override func moveLeft  (sender: AnyObject?) { guyMoveX(0, y:0, z:0,    a:0, b:-0.5, c:0) }
     
-    func guyMoveX(x:Int, y:Int, z:Int, a:Int, b:CGFloat, c:Int) {
+    func guyMoveX(x:Int, y:Int, z:Int, a:CGFloat, b:CGFloat, c:CGFloat) {
 
-        let move = SCNAction.moveByX(CGFloat(x), y:CGFloat(y), z:CGFloat(z), duration:1)
+        let move = localMove(guy, x:CGFloat(x), y:CGFloat(y), z:CGFloat(z))
+        // SCNAction.moveByX(CGFloat(x), y:CGFloat(y), z:CGFloat(z), duration:1)
         let rotate = SCNAction.rotateByX(CGFloat(a), y:CGFloat(b), z:CGFloat(c), duration:1.0)
         guy.runAction(move)
         guy.runAction(rotate)
     }
 
+    func localMove(node:SCNNode, x:CGFloat, y:CGFloat, z:CGFloat) -> SCNAction {
+        
+        print("angles = \(node.eulerAngles)")
+        let dz = z * cos(node.eulerAngles.y)
+        let dx = z * sin(node.eulerAngles.y)
+        let dy = z * sin(node.eulerAngles.x)
+        
+        return SCNAction.moveByX(dx, y:dy, z:dz, duration:1)
+    }
+    
     func sceneB() {
 
         self.gameView.scene = SCNScene()
@@ -47,6 +52,7 @@ class GameViewController: NSViewController {
         for childNode in nodeArray {
             guy.addChildNode(childNode as SCNNode)
         }
+        guy.pivot = SCNMatrix4MakeRotation(CGFloat(M_PI), 0, 1, 0)
         self.gameView.scene!.rootNode.addChildNode(guy)
         
         let plane = SCNPlane(width: 100.0, height: 200.0)
