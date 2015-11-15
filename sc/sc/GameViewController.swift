@@ -7,6 +7,15 @@ struct Position {
     var a=CGFloat(0), b=CGFloat(0), c=CGFloat(0) // rotation
 }
 
+func delay(delay:Double, closure:()->()) {
+    dispatch_after(
+        dispatch_time(
+            DISPATCH_TIME_NOW,
+            Int64(delay * Double(NSEC_PER_SEC))
+        ),
+        dispatch_get_main_queue(), closure)
+}
+
 func daeToNode(dae:String) -> SCNNode {
     let walking = SCNScene(named: "art.scnassets/" + dae)
     let nodeArray = walking!.rootNode.childNodes
@@ -16,6 +25,8 @@ func daeToNode(dae:String) -> SCNNode {
         node.addChildNode(childNode as SCNNode)
     }
     node.pivot = SCNMatrix4MakeRotation(CGFloat(M_PI), 0, 1, 0)
+    node.hidden = true
+
     return node
 }
 
@@ -23,32 +34,46 @@ class GameViewController: NSViewController {
     
     @IBOutlet weak var gameView: GameView!
     
-    var guy = daeToNode("walking")
     var idle = daeToNode("idle")
+    var guy = daeToNode("walking")
+    var leftTurn = daeToNode("left_turn_90")
+    var rightTurn = daeToNode("right_turn_90")
+
     var position = Position()
-    
+
     override func awakeFromNib(){
         sceneB()
     }
 
-    override func moveUp    (sender: AnyObject?) { guyMoveX(0, y:0, z:-100, a:0, b:0,    c:0) }
-    override func moveDown  (sender: AnyObject?) { guyMoveX(0, y:0, z:100,  a:0, b:0,    c:0) }
-    override func moveRight (sender: AnyObject?) { guyMoveX(0, y:0, z:0,    a:0, b:0.5,  c:0) }
-    override func moveLeft  (sender: AnyObject?) { guyMoveX(0, y:0, z:0,    a:0, b:-0.5, c:0) }
+    override func moveUp    (sender: AnyObject?) { guyMoveX(0, y:0, z:-150) }
+    override func moveDown  (sender: AnyObject?) { guyMoveX(0, y:0, z:150)  }
+    override func moveRight (sender: AnyObject?) { guyTurn(-CGFloat(M_PI_2))}
+    override func moveLeft  (sender: AnyObject?) { guyTurn(CGFloat(M_PI_2)) }
     
-    func guyMoveX(x:Int, y:Int, z:Int, a:CGFloat, b:CGFloat, c:CGFloat) {
-
-        guy.hidden = false
-        idle.hidden = true
-        
-        let move = localMove(guy, x:CGFloat(x), y:CGFloat(y), z:CGFloat(z))
-        let rotate = SCNAction.rotateByX(CGFloat(a), y:CGFloat(b), z:CGFloat(c), duration:1.0)
-        guy.runAction(rotate)
-        guy.runAction(move, completionHandler: {
-            self.guy.hidden = true
-            self.idle.position = self.guy.position
-            self.idle.orientation = self.guy.orientation
+    func place(node0:SCNNode, at:SCNNode) {
+        at.hidden = true
+        node0.position = at.position
+        node0.eulerAngles = at.eulerAngles
+        node0.hidden = false
+    }
+    
+    func guyTurn(angle:CGFloat) {
+        let figure = ( angle > 0 ? leftTurn : rightTurn )
+        place(figure, at:idle)
+        delay(0.5) {
+            self.idle.eulerAngles.y += angle
+            print("idle at \(self.idle.eulerAngles.y), angle = \(angle)")
+            figure.hidden = true
             self.idle.hidden = false
+        }
+    }
+    
+    func guyMoveX(x:Int, y:Int, z:Int) {
+
+        place(guy, at:idle)
+        let move = localMove(guy, x:CGFloat(x), y:CGFloat(y), z:CGFloat(z))
+        guy.runAction(move, completionHandler: {
+            self.place(self.idle, at:self.guy)
         })
     }
 
@@ -58,26 +83,29 @@ class GameViewController: NSViewController {
         let dz = z * cos(node.eulerAngles.y)
         let dx = z * sin(node.eulerAngles.y)
         let dy = z * sin(node.eulerAngles.x)
+        print("move \(dx),\(dy),\(dz)")
         
         return SCNAction.moveByX(dx, y:dy, z:dz, duration:1)
     }
     
     func sceneB() {
 
-        guy.hidden = true
         self.gameView.scene = SCNScene()
 
         self.gameView.scene!.rootNode.addChildNode(guy)
         self.gameView.scene!.rootNode.addChildNode(idle)
-        
+        self.gameView.scene!.rootNode.addChildNode(rightTurn)
+        self.gameView.scene!.rootNode.addChildNode(leftTurn)
+        idle.hidden = false
+
         let plane = SCNPlane(width: 100.0, height: 200.0)
         let floor = SCNNode(geometry: plane)
         floor.pivot = SCNMatrix4MakeRotation(CGFloat(M_PI_2), 1, 0, 0)
         self.gameView!.scene!.rootNode.addChildNode(floor)
 
-        let sphereGeometry = SCNSphere(radius: 10.0)
-        let sphereNode = SCNNode(geometry: sphereGeometry)
-        self.gameView!.scene!.rootNode.addChildNode(sphereNode)
+//        let sphereGeometry = SCNSphere(radius: 10.0)
+//        let sphereNode = SCNNode(geometry: sphereGeometry)
+//        self.gameView!.scene!.rootNode.addChildNode(sphereNode)
         
         
         // allows the user to manipulate the camera
