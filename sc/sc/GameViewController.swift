@@ -38,6 +38,7 @@ class GameViewController: NSViewController {
     var guy = daeToNode("walking")
     var leftTurn = daeToNode("left_turn_90")
     var rightTurn = daeToNode("right_turn_90")
+    var backwards = daeToNode("walking_backwards")
 
     var position = Position()
 
@@ -46,7 +47,7 @@ class GameViewController: NSViewController {
     }
 
     override func moveUp    (sender: AnyObject?) { guyMoveX(0, y:0, z:-150) }
-    override func moveDown  (sender: AnyObject?) { guyMoveX(0, y:0, z:150)  }
+    override func moveDown  (sender: AnyObject?) { guyMoveX(0, y:0, z:50)  }
     override func moveRight (sender: AnyObject?) { guyTurn(-CGFloat(M_PI_2))}
     override func moveLeft  (sender: AnyObject?) { guyTurn(CGFloat(M_PI_2)) }
     
@@ -70,10 +71,12 @@ class GameViewController: NSViewController {
     
     func guyMoveX(x:Int, y:Int, z:Int) {
 
-        place(guy, at:idle)
-        let move = localMove(guy, x:CGFloat(x), y:CGFloat(y), z:CGFloat(z))
-        guy.runAction(move, completionHandler: {
-            self.place(self.idle, at:self.guy)
+        let g = z < 0 ? guy : backwards
+        
+        place(g, at:idle)
+        let move = localMove(g, x:CGFloat(x), y:CGFloat(y), z:CGFloat(z))
+        g.runAction(move, completionHandler: {
+            self.place(self.idle, at:g)
         })
     }
 
@@ -96,6 +99,7 @@ class GameViewController: NSViewController {
         self.gameView.scene!.rootNode.addChildNode(idle)
         self.gameView.scene!.rootNode.addChildNode(rightTurn)
         self.gameView.scene!.rootNode.addChildNode(leftTurn)
+        self.gameView.scene!.rootNode.addChildNode(backwards)
         idle.hidden = false
 
         let plane = SCNPlane(width: 100.0, height: 200.0)
